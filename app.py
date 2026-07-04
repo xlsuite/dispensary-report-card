@@ -288,7 +288,7 @@ INDEX_HTML = """<!doctype html>
 </div></main>
 
 <footer>
-  Built by <a href="https://poof.ca">poof.ca</a>.
+  Built by <a href="https://budmafia.com">BudMafia.com</a>.
   Scans use only public data and are not stored.
 </footer>
 

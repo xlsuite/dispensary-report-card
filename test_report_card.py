@@ -61,10 +61,23 @@ STOKD_FIXTURE = """<!doctype html>
 </html>
 """
 
-# Minimal sitemap fixture — a sitemap index with one child product sitemap
+# Sitemap index fixture — mirrors what Rank Math/Yoast actually serve:
+# multiple child sitemaps, each with <lastmod>. The lastmod matters — a
+# regression once glued it onto the URL and broke product discovery.
 STOKD_SITEMAP = """<?xml version="1.0" encoding="UTF-8"?>
 <sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <sitemap><loc>https://stokd.ca/product-sitemap.xml</loc></sitemap>
+  <sitemap>
+    <loc>https://stokd.ca/post-sitemap.xml</loc>
+    <lastmod>2026-06-08T18:30:36+00:00</lastmod>
+  </sitemap>
+  <sitemap>
+    <loc>https://stokd.ca/page-sitemap.xml</loc>
+    <lastmod>2026-06-01T02:46:59+00:00</lastmod>
+  </sitemap>
+  <sitemap>
+    <loc>https://stokd.ca/product-sitemap1.xml</loc>
+    <lastmod>2026-06-20T03:35:47+00:00</lastmod>
+  </sitemap>
 </sitemapindex>
 """
 
@@ -277,12 +290,38 @@ def test_clean_urls_detection():
     assert tier.points_earned >= 23, f"WooCommerce should be near full S-tier, got {tier.points_earned}"
 
 
+def test_sitemap_index_with_lastmod_yields_product_urls():
+    """REGRESSION: <lastmod> in a sitemap index must not corrupt child URLs.
+
+    Real-world Rank Math/Yoast indexes always include <lastmod>. A bug that
+    read `.text` off the whole <sitemap> element glued the timestamp onto the
+    URL, every child fetch 404'd, and live scans reported 'no product URLs
+    discovered' on sites with perfectly good /product/ pages (e.g. stokd.ca).
+    Also verifies product-sitemaps are prioritized over post-/page-sitemaps.
+    """
+    routes = {
+        "stokd.ca/product-sitemap1.xml": STOKD_PRODUCT_SITEMAP,
+        # post-/page-sitemaps intentionally unrouted -> fetch returns None
+    }
+    original_fetch = rc.fetch
+    rc.fetch = make_fake_fetch(routes)
+    try:
+        urls = rc.collect_product_urls(STOKD_SITEMAP, "https://stokd.ca/")
+    finally:
+        rc.fetch = original_fetch
+
+    assert len(urls) == 4, f"expected 4 product URLs, got {len(urls)}: {urls}"
+    assert all("/product/" in u for u in urls), f"non-product URLs leaked in: {urls}"
+    assert all("lastmod" not in u and "+00:00" not in u for u in urls), \
+        f"lastmod contaminated a URL: {urls}"
+
+
 def test_full_scan_offline_stokd(monkeypatch=None):
     """End-to-end scan with the network mocked to return our stokd fixtures."""
     routes = {
         "stokd.ca/robots.txt": "User-agent: *\nAllow: /\nSitemap: https://stokd.ca/sitemap.xml",
         "stokd.ca/sitemap.xml": STOKD_SITEMAP,
-        "stokd.ca/product-sitemap.xml": STOKD_PRODUCT_SITEMAP,
+        "stokd.ca/product-sitemap1.xml": STOKD_PRODUCT_SITEMAP,
         "stokd.ca/product/soar-widow-pop": STOKD_PRODUCT_PAGE,
         "stokd.ca/": STOKD_FIXTURE,
     }
@@ -630,6 +669,7 @@ TESTS = [
     ("Subdomain penalty -5", test_subdomain_penalty_applies),
     ("Terpene taxonomy detection", test_terpene_taxonomy_detection),
     ("Minor cannabinoid detection", test_minor_cannabinoid_detection),
+    ("REGRESSION: sitemap index with lastmod yields product URLs", test_sitemap_index_with_lastmod_yields_product_urls),
     ("Full offline scan -- stokd.ca", test_full_scan_offline_stokd),
     ("Full offline scan -- lakecitycannabis.ca", test_full_scan_offline_lakecity),
     ("GBP scoring: no API key", test_gbp_score_no_api_key),

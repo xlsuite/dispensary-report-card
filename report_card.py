@@ -458,15 +458,27 @@ def collect_product_urls(sitemap_xml: str, base: str, max_urls: int = 20) -> lis
     """
     soup = BeautifulSoup(sitemap_xml, "xml")
 
-    # If it's a sitemap index, fetch child sitemaps that look product-related
-    child_sitemaps = [s.text.strip() for s in soup.find_all("sitemap")]
+    # If it's a sitemap index, fetch child sitemaps that look product-related.
+    # Each <sitemap> entry holds a <loc> and usually a <lastmod> — only the
+    # <loc> is the URL. (Grabbing .text off the whole <sitemap> element glues
+    # the lastmod timestamp onto the URL, and every real-world Yoast/Rank Math
+    # index includes lastmod, so that produced zero product URLs in the wild.)
+    child_sitemaps: list[str] = []
+    for s in soup.find_all("sitemap"):
+        loc = s.find("loc")
+        if loc and loc.text.strip():
+            child_sitemaps.append(loc.text.strip())
     if child_sitemaps:
+        # Fetch product/shop child sitemaps first so WooCommerce's
+        # product-sitemapN.xml wins over post-/page-sitemaps.
+        child_sitemaps.sort(
+            key=lambda u: 0 if ("product" in u.lower() or "shop" in u.lower()) else 1
+        )
         urls: list[str] = []
         for sm in child_sitemaps[:5]:  # cap to first 5 child sitemaps
-            if "product" in sm.lower() or "shop" in sm.lower() or len(urls) < 5:
-                r = fetch(sm)
-                if r and r.ok:
-                    urls.extend(_extract_loc(r.text))
+            r = fetch(sm)
+            if r and r.ok:
+                urls.extend(_extract_loc(r.text))
             if len(urls) >= max_urls:
                 break
         return urls[:max_urls]

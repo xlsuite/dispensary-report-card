@@ -251,6 +251,78 @@ def test_email_scoring_klaviyo_beats_mailchimp():
     assert conflict is not None, "expected ESP conflict flag for Klaviyo+Mailchimp"
 
 
+def test_klaviyo_embed_placeholder_counts_as_newsletter_form():
+    """REGRESSION: modern Klaviyo forms are JS-injected; the raw HTML only
+    contains an empty placeholder div (class="klaviyo-form-XXXXXX"). That
+    placeholder must credit the 'newsletter capture form' check — stokd.ca
+    was wrongly scored 'no signup form' despite a full Klaviyo embed."""
+    html = """<html><head>
+    <script src="https://static.klaviyo.com/onsite/js/AbC123/klaviyo.js"></script>
+    </head><body>
+    <h2>STAY STOK'D</h2>
+    <div class="klaviyo-form-YvyJ7e"></div>
+    <p>By subscribing you confirm you're 19+.</p>
+    </body></html>"""
+    soup = BeautifulSoup(html, "lxml")
+    cat = rc.score_email(html, soup)
+    form_check = next(c for c in cat.checks if c.key == "newsletter_form")
+    assert form_check.passed, f"Klaviyo placeholder div should count as a form: {form_check.detail}"
+
+
+CHRONTACT_FIXTURE = """<!doctype html>
+<html><head>
+<title>Premium Cannabis &amp; Friendly Service - Chrontact</title>
+<script src="https://ca.cdn.hifyreretail.com/app/main.js"></script>
+<script src="https://www.googletagmanager.com/gtm.js?id=GTM-ABC1234"></script>
+</head><body>
+<a href="/spark">SPARK REWARDS</a>
+<p>Join Spark Rewards and earn points on every purchase.</p>
+<a href="/shop/flower">Flower</a>
+</body></html>
+"""
+
+
+def test_platform_tier_hifyre_is_A():
+    """Hifyre (FIKA family: FIKA, Chrontact, Fire & Flower) serves same-domain
+    SSR /products/<slug> pages + a products sitemap — A-tier (22), not
+    'unknown platform'. Verified against chrontact.ca."""
+    soup = BeautifulSoup(CHRONTACT_FIXTURE, "lxml")
+    product_urls = [
+        "https://chrontact.ca/products/050-cal-gator-blood-double-infused",
+        "https://chrontact.ca/products/1000mg-delta-9-distillate-softgels",
+    ]
+    tier, pts, label, _ = rc.classify_ecom_platform(CHRONTACT_FIXTURE, soup, product_urls)
+    assert tier == "A", f"expected A-tier, got {tier} ({label})"
+    assert pts == 22
+    assert "Hifyre" in label
+
+    # Without product URLs it should degrade to B, not A
+    tier2, pts2, label2, _ = rc.classify_ecom_platform(CHRONTACT_FIXTURE, soup, [])
+    assert tier2 == "B" and pts2 == 14, f"expected B/14 without sitemap, got {tier2}/{pts2}"
+
+
+def test_spark_rewards_loyalty_detected():
+    """Spark Rewards (FIKA/Hifyre first-party loyalty) must credit the loyalty
+    category. chrontact.ca showed 'no loyalty platform detected' despite a
+    /spark page and SPARK REWARDS branding on the homepage."""
+    soup = BeautifulSoup(CHRONTACT_FIXTURE, "lxml")
+    cat = rc.score_loyalty(CHRONTACT_FIXTURE, soup)
+    check = cat.checks[0]
+    assert check.points_earned == 12, f"expected 12 pts for Spark Rewards, got {check.points_earned} ({check.detail})"
+    assert "Spark" in check.detail
+
+
+def test_products_plural_urls_are_product_like():
+    """/products/<slug> (Hifyre, Shopify) must match the product-URL filter,
+    not just /product/<slug> (WooCommerce)."""
+    xml = """<urlset>
+    <url><loc>https://chrontact.ca/products/some-item</loc></url>
+    <url><loc>https://chrontact.ca/about-us</loc></url>
+    </urlset>"""
+    urls = rc._extract_loc(xml)
+    assert urls == ["https://chrontact.ca/products/some-item"], f"got: {urls}"
+
+
 def test_loyalty_aiq_bundled_only_does_not_credit_full():
     """The Breadstack bundled CSS class alone gets 3 pts, not 15."""
     soup = BeautifulSoup(STOKD_FIXTURE, "lxml")
@@ -656,6 +728,7 @@ TESTS = [
     ("Tracking ID extraction (GA4/GTM)", test_extract_ids),
     ("SEO scoring with sample product page", test_seo_scoring),
     ("Email scoring: Klaviyo wins over Mailchimp", test_email_scoring_klaviyo_beats_mailchimp),
+    ("REGRESSION: Klaviyo JS-injected form placeholder counts", test_klaviyo_embed_placeholder_counts_as_newsletter_form),
     ("Loyalty scoring: bundled AIQ != active AIQ", test_loyalty_aiq_bundled_only_does_not_credit_full),
     ("Retention scoring: AutomateWoo + Klaviyo = full credit", test_retention_automatewoo_credits),
     ("E-commerce: clean URL detection + WooCommerce S-tier", test_clean_urls_detection),
@@ -666,6 +739,9 @@ TESTS = [
     ("Platform tier: Next.js + sitemap = A (22 pts)", test_platform_tier_nextjs_with_products_is_A),
     ("Platform tier: Next.js no sitemap = C", test_platform_tier_nextjs_without_sitemap_is_C),
     ("Platform tier: nothing = F", test_platform_tier_no_ecom_is_F),
+    ("Platform tier: Hifyre (FIKA) = A (22 pts)", test_platform_tier_hifyre_is_A),
+    ("Loyalty: Spark Rewards (FIKA/Hifyre) detected", test_spark_rewards_loyalty_detected),
+    ("Product URL filter: /products/ plural matches", test_products_plural_urls_are_product_like),
     ("Subdomain penalty -5", test_subdomain_penalty_applies),
     ("Terpene taxonomy detection", test_terpene_taxonomy_detection),
     ("Minor cannabinoid detection", test_minor_cannabinoid_detection),

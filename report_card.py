@@ -68,7 +68,14 @@ SIGS = {
     ],
     "omnisend": [r"omnisend\.com", r"omnisrc\.com"],
     "activecampaign": [r"activehosted\.com", r"trackcmp\.net"],
-    "klaviyo_form": [r"klaviyo_subscribe", r"data-klaviyo-list"],
+    "klaviyo_form": [
+        r"klaviyo_subscribe",
+        r"data-klaviyo-list",
+        # Modern Klaviyo onsite forms: raw HTML holds an empty placeholder div
+        # (class="klaviyo-form-XXXXXX") that Klaviyo's JS fills in at runtime.
+        # Without this, JS-injected signup forms read as "no newsletter form".
+        r"klaviyo-form-[A-Za-z0-9]{4,10}",
+    ],
 
     # ---- Loyalty platforms (actively loaded) ----
     "alpineiq_active": [
@@ -85,6 +92,13 @@ SIGS = {
     "sticky_cards": [r"stickycards\.io", r"cdn\.stickycards", r"sticky-cannabis"],
     "smile_io": [r"smile\.io", r"sweettooth\.io"],
     "yotpo_loyalty": [r"loyalty\.yotpo\.com"],
+    "spark_rewards": [
+        # First-party loyalty program of the FIKA family (Hifyre platform):
+        # FIKA, Chrontact, Fire & Flower, etc. Branded "Spark Rewards"
+        # (historically "Spark Perks" under Fire & Flower).
+        r"spark\s+(rewards|perks)",
+        r"href=[\"'][^\"']*/spark[\"'/#?]",
+    ],
 
     # ---- Reviews / post-purchase ----
     "yotpo_reviews": [r"staticw2\.yotpo\.com", r"yotpo-widget"],
@@ -131,6 +145,10 @@ SIGS = {
     "tymber": [r"tymber\.io"],
     "greenline": [r"getgreenline\.co", r"greenline\.shop"],
     "breadstack": [r"breadstack", r"/plugins/breadstack-connect/"],
+    # Hifyre — retail platform behind the FIKA family of banners (FIKA,
+    # Chrontact, Fire & Flower). Serves same-domain, server-rendered
+    # /products/<slug> pages with a products sitemap.
+    "hifyre": [r"hifyreretail\.com", r"cdn\.hifyre", r"\bhifyre\b"],
     # ---- POS / Inventory systems ----
     # IMPORTANT: Cova detection is tight on purpose. The Breadstack plugin
     # uses "cova" naming throughout (cova-woo-swatches-frontend.js,
@@ -490,7 +508,7 @@ def _extract_loc(xml: str) -> list[str]:
     """Pull <loc>…</loc> values from a sitemap, prioritizing product-like URLs."""
     soup = BeautifulSoup(xml, "xml")
     locs = [u.text.strip() for u in soup.find_all("loc")]
-    product_like = [u for u in locs if re.search(r"/(product|shop|p)/[^/]+/?$", u)]
+    product_like = [u for u in locs if re.search(r"/(products?|shop|p)/[^/]+/?$", u)]
     return product_like if product_like else locs
 
 
@@ -647,6 +665,19 @@ def classify_ecom_platform(html: str, soup, product_urls: list) -> tuple:
         return ("S", 24, "BigCommerce", "Top-tier on-domain ecom.")
     if detect(html, "magento"):
         return ("S", 23, "Magento / Adobe Commerce", "Top-tier on-domain ecom.")
+
+    # Hifyre (FIKA family): custom cannabis platform with same-domain,
+    # server-rendered /products/<slug> pages + products sitemap (verified
+    # on chrontact.ca: SSR product titles, 3,400+ URL product sitemap).
+    if detect(html, "hifyre"):
+        if product_urls:
+            return ("A", 22, "Hifyre (FIKA)",
+                    "Hifyre retail platform: same-domain, server-rendered "
+                    "product pages with a products sitemap. Near top-tier "
+                    "indexability for a custom platform.")
+        return ("B", 14, "Hifyre (FIKA) — no product sitemap found",
+                "Hifyre retail platform detected, but no product URLs were "
+                "discovered via the sitemap. Manual review recommended.")
 
     # Fourth: custom built — Next.js / Nuxt / Gatsby. SSR is key.
     has_nextjs = detect(html, "nextjs")
@@ -902,6 +933,7 @@ def score_loyalty(html: str, soup: BeautifulSoup) -> Category:
     aiq_active = detect(html, "alpineiq_active")
     aiq_bundled = detect(html, "alpineiq_bundled")
     springbig = detect(html, "springbig")
+    spark = detect(html, "spark_rewards")
     sticky = detect(html, "sticky_cards")
     smile = detect(html, "smile_io")
     yotpo_loy = detect(html, "yotpo_loyalty")
@@ -914,6 +946,8 @@ def score_loyalty(html: str, soup: BeautifulSoup) -> Category:
         pts, label = 15, "AlpineIQ actively loaded"
     elif springbig:
         pts, label = 12, "Springbig"
+    elif spark:
+        pts, label = 12, "Spark Rewards (FIKA/Hifyre first-party loyalty)"
     elif sticky:
         pts, label = 10, "Sticky Cards"
     elif smile:

@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Report Card &mdash; https://lakecitycannabis.ca/</title>
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<style>
+  :root{--bg:#0f1419;--panel:#1a1f26;--line:#2a313b;--text:#e6e8eb;--muted:#8a93a0;--pass:#2ec27e;--fail:#e5484d;--warn:#f5a524;--accent:#5cd6ff}
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;line-height:1.5}
+  .wrap{max-width:880px;margin:0 auto;padding:32px 24px 64px}
+  h1{margin:0 0 4px;font-size:24px;font-weight:600}
+  .url{color:var(--muted);font-size:14px;word-break:break-all}
+  .scanned{color:var(--muted);font-size:12px;margin-top:4px}
+  .hero{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:28px;margin-top:24px;display:flex;align-items:center;gap:28px}
+  .grade{font-size:72px;font-weight:700;line-height:1;width:110px;text-align:center;padding:8px;border-radius:12px}
+  .grade.A{color:var(--pass);background:rgba(46,194,126,.08)}
+  .grade.B{color:#7bd88f;background:rgba(123,216,143,.08)}
+  .grade.C{color:var(--warn);background:rgba(245,165,36,.08)}
+  .grade.D{color:#ff8a3d;background:rgba(255,138,61,.08)}
+  .grade.F{color:var(--fail);background:rgba(229,72,77,.08)}
+  .score-num{font-size:40px;font-weight:600}
+  .score-sub{color:var(--muted);font-size:13px}
+  .category{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:20px 24px;margin-top:16px}
+  .cat-header{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:12px}
+  .cat-name{font-size:17px;font-weight:600}
+  .cat-meta{color:var(--muted);font-size:13px}
+  .bar{height:6px;background:rgba(255,255,255,.05);border-radius:3px;overflow:hidden;margin:8px 0 16px}
+  .bar>div{height:100%;transition:width .4s}
+  .bar.A>div{background:var(--pass)}.bar.B>div{background:#7bd88f}.bar.C>div{background:var(--warn)}.bar.D>div{background:#ff8a3d}.bar.F>div{background:var(--fail)}
+  .check{display:flex;gap:12px;padding:8px 0;border-bottom:1px solid var(--line);font-size:14px}
+  .check:last-child{border-bottom:none}
+  .mark{font-size:16px;min-width:20px}
+  .mark.pass{color:var(--pass)}.mark.fail{color:var(--fail)}.mark.partial{color:var(--warn)}
+  .check-body{flex:1}
+  .check-label{font-weight:500}
+  .check-detail{color:var(--muted);font-size:13px;margin-top:2px}
+  .check-pts{color:var(--muted);font-size:12px;min-width:56px;text-align:right}
+  .notes,.stack{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:20px 24px;margin-top:16px}
+  .notes h3,.stack h3{margin:0 0 12px;font-size:16px}
+  .notes h3{color:var(--accent)}
+  .notes ul{margin:0;padding-left:20px}
+  .notes li{margin:6px 0;font-size:14px}
+  .stack-group{display:flex;gap:12px;padding:6px 0;border-bottom:1px solid var(--line);font-size:13px}
+  .stack-group:last-child{border-bottom:none}
+  .stack-label{color:var(--muted);min-width:170px;font-weight:500}
+  .stack-vals{color:var(--text);flex:1}
+  .footer{color:var(--muted);font-size:12px;margin-top:32px;text-align:center}
+  .footer a{color:var(--accent);text-decoration:none}
+  .footer a:hover{text-decoration:underline}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Dispensary E-Commerce Report Card</h1>
+  <div class="url">https://lakecitycannabis.ca/</div>
+  <div class="scanned">Scanned 2026-05-30T17:57:24.943907Z</div>
+  <div class="hero">
+    <div class="grade C">C</div>
+    <div>
+      <div class="score-num">70.1 / 100</div>
+      <div class="score-sub">Weighted across 7 categories</div>
+    </div>
+  </div>
+  <div class="category"><div class="cat-header"><div class="cat-name">SEO Fundamentals</div><div class="cat-meta">94/100 &middot; grade A &middot; weight 18%</div></div><div class="bar A"><div style="width:94.0%"></div></div><div class="check"><span class="mark partial">&#9680;</span><div class="check-body"><div class="check-label">Title tag (25–70 chars)</div><div class="check-detail">&quot;Buy cannabis online | Delivery &amp; Shipping available | Lake City Cannabis&quot; (72 chars)</div></div><div class="check-pts">1.5/3</div></div><div class="check"><span class="mark pass">&#9679;</span><div class="check-body"><div class="check-label">Meta description (70–165 chars)</div><div class="check-detail">156 chars</div></div><div class="check-pts">3.0/3</div></div><div class="check"><span class="mark pass">&#9679;</span><div class="check-body"><div class="check-label">Canonical URL</div><div class="check-detail">https://lakecitycannabis.ca/</div></div><div class="check-pts">2.0/2</div></div><div class="check"><span class="mark pass">&#9679;</span><div class="check-body"><div class="check-label">Open Graph (title/description/image)</div><div class="check-detail">3/3 tags found: og:title, og:description, og:image</div></div><div class="check-pts">3.0/3</div></div><div class="check"><span class="mark pass">&#9679;</span><div class="check-body"><div class="check-label">Twitter Card</div><div class="check-detail">summary_large_image</div></div><div class="check-pts">1.0/1</div></div><div class="check"><span class="mark pass">&#9679;</span><div class="check-body"><div class="check-label">Product structured data (Schema.org)</div><div class="check-detail">found</div></div><div class="check-pts">6.0/6</div></div><div class="check"><span class="mark pass">&#9679;</span><div class="check-body"><div class="check-label">robots.txt accessible</div><div class="check-detail">found</div></div><div class="check-pts">2.0/2</div></div><div class="check"><span class="mark pass">&#9679;</span><div class="check-body"><div class="check-label">sitemap.xml accessible</div><div class="check-detail">found</div></div><div class="check-pts">3.0/3</div></div><div class="check"><span class="mark pass">&#9679;</span><div class="check-body"><div class="check-label">Viewport meta (mobile)</div><div class="check-detail">set</div></div><div class="check-pts">2.0/2</div></div></div>
+<div class="category"><div class="cat-header"><div class="cat-name">E-commerce &amp; Platform</div><div class="cat-meta">88/100 &middot; grade B &middot; weight 17%</div></div><div class="bar B"><div style="width:87.5%"></div></div><div class="check"><span class="mark pass">&#9679;</span><div class="check-body"><div class="check-label">E-commerce platform tier (S): WooCommerce</div><div class="check-detail">Top-tier: same-domain product pages, full SEO benefit.</div></div><div class="check-pts">25.0/25</div></div><div class="check"><span class="mark fail">&#9675;</span><div class="check-body"><div class="check-label">Searchable terpene taxonomy</div><div class="check-detail">no terpene names detected — competitors with terpene filters/facets have a significant SEO + UX edge</div></div><div class="check-pts">0.0/3</div></div><div class="check"><span class="mark fail">&#9675;</span><div class="check-body"><div class="check-label">Minor cannabinoid mentions/filters</div><div class="check-detail">no minor cannabinoid mentions (CBN, CBG, CBC, etc.)</div></div><div class="check-pts">0.0/2</div></div><div class="check"><span class="mark pass">&#9679;</span><div class="check-body"><div class="check-label">Individual product pages discoverable</div><div class="check-detail">3 product URLs found in sitemap</div></div><div class="check-pts">5.0/5</div></div><div class="check"><span class="mark pass">&#9679;</span><div class="check-body"><div class="check-label">Clean URLs on product pages</div><div class="check-detail">3/3 URLs (100%) are clean</div></div><div class="check-pts">3.0/3</div></div><div class="check"><span class="mark pass">&#9679;</span><div class="check-body"><div class="check-label">Served over HTTPS</div><div class="check-detail">yes</div></div><div class="check-pts">2.0/2</div></div></div>
+<div class="category"><div class="cat-header"><div class="cat-name">Analytics &amp; Tracking</div><div class="cat-meta">73/100 &middot; grade C &middot; weight 10%</div></div><div class="bar C"><div style="width:73.3%"></div></div><div class="check"><span class="mark pass">&#9679;</span><div class="check-body"><div class="check-label">Google Analytics 4</div><div class="check-detail">GA4 properties: G-6T1N0CBHWE, G-SYE48003XE</div></div><div class="check-pts">5.0/5</div></div><div class="check"><span class="mark pass">&#9679;</span><div class="check-body"><div class="check-label">Google Tag Manager</div><div class="check-detail">GTM containers: GTM-P3BWXL4</div></div><div class="check-pts">3.0/3</div></div><div class="check"><span class="mark pass">&#9679;</span><div class="check-body"><div class="check-label">Google Search Console connection</div><div class="check-detail">Site Kit by Google detected (implies GSC connection)</div></div><div class="check-pts">3.0/3</div></div><div class="check"><span class="mark fail">&#9675;</span><div class="check-body"><div class="check-label">Meta (Facebook) Pixel</div><div class="check-detail">not detected</div></div><div class="check-pts">0.0/2</div></div><div class="check"><span class="mark fail">&#9675;</span><div class="check-body"><div class="check-label">TikTok Pixel</div><div class="check-detail">not detected</div></div><div class="check-pts">0.0/2</div></div></div>
+<div class="category"><div class="cat-header"><div class="cat-name">Email Marketing</div><div class="cat-meta">80/100 &middot; grade B &middot; weight 17%</div></div><div class="bar B"><div style="width:80.0%"></div></div><div class="check"><span class="mark fail">&#9675;</span><div class="check-body"><div class="check-label">Newsletter capture form present</div><div class="check-detail">no obvious signup form on homepage</div></div><div class="check-pts">0.0/5</div></div><div class="check"><span class="mark pass">&#9679;</span><div class="check-body"><div class="check-label">Email service provider quality</div><div class="check-detail">Klaviyo (best-in-class)</div></div><div class="check-pts">20.0/20</div></div><div class="check"><span class="mark partial">i</span><div class="check-body"><div class="check-label">ESP stack hygiene</div><div class="check-detail">Klaviyo AND Mailchimp both detected — consolidate to avoid duplicate sends/leaks</div></div><div class="check-pts">info</div></div></div>
+<div class="category"><div class="cat-header"><div class="cat-name">Loyalty Program</div><div class="cat-meta">33/100 &middot; grade F &middot; weight 8%</div></div><div class="bar F"><div style="width:33.3%"></div></div><div class="check"><span class="mark partial">&#9680;</span><div class="check-body"><div class="check-label">Loyalty platform</div><div class="check-detail">Custom/branded loyalty page found — platform unknown</div></div><div class="check-pts">5.0/15</div></div></div>
+<div class="category"><div class="cat-header"><div class="cat-name">Retention &amp; Reviews</div><div class="cat-meta">47/100 &middot; grade F &middot; weight 10%</div></div><div class="bar F"><div style="width:46.7%"></div></div><div class="check"><span class="mark pass">&#9679;</span><div class="check-body"><div class="check-label">Abandoned cart / post-purchase capability</div><div class="check-detail">AutomateWoo + Klaviyo — strong abandoned cart / post-purchase capability</div></div><div class="check-pts">5.0/5</div></div><div class="check"><span class="mark fail">&#9675;</span><div class="check-body"><div class="check-label">Dedicated review platform</div><div class="check-detail">no dedicated review platform — likely missing post-purchase review requests</div></div><div class="check-pts">0.0/5</div></div><div class="check"><span class="mark pass">&#9679;</span><div class="check-body"><div class="check-label">Google Reviews social proof on site</div><div class="check-detail">Google Reviews widget embedded</div></div><div class="check-pts">2.0/2</div></div><div class="check"><span class="mark fail">&#9675;</span><div class="check-body"><div class="check-label">WooCommerce native reviews fallback</div><div class="check-detail">absent</div></div><div class="check-pts">0.0/3</div></div></div>
+<div class="category"><div class="cat-header"><div class="cat-name">Local Search &amp; Google Business Profile</div><div class="cat-meta">50/100 &middot; grade F &middot; weight 20%</div></div><div class="bar F"><div style="width:50.0%"></div></div><div class="check"><span class="mark pass">&#9679;</span><div class="check-body"><div class="check-label">Google reviews / Maps embedded on website</div><div class="check-detail">Google Reviews widget</div></div><div class="check-pts">5.0/5</div></div><div class="check"><span class="mark fail">&#9675;</span><div class="check-body"><div class="check-label">Per-store landing pages present on site</div><div class="check-detail">single-location site, or no per-store landing pages detected</div></div><div class="check-pts">0.0/5</div></div><div class="check"><span class="mark partial">i</span><div class="check-body"><div class="check-label">Google Business Profile data</div><div class="check-detail">Skipped — no GOOGLE_PLACES_API_KEY configured. Add one to enable photo count, rating, review activity, and website-link attribution checks.</div></div><div class="check-pts">info</div></div></div>
+  <div class="notes"><h3>Notes &amp; recommendations</h3><ul><li>Both Klaviyo and Mailchimp signatures present. This is usually a half-migrated stack; consolidate to avoid duplicate sends and split audience attribution.</li><li>POS system: not determinable from public HTML. This site uses Breadstack, whose WordPress plugin uses 'cova'-prefixed file names and JS globals (cova_wc_params, Cova_WC_FRONT_SWATCH, cova-woo-swatches-frontend.js, etc.) regardless of which POS the merchant actually runs. The actual POS (Cova, Greenline headless, Tymber, etc.) is configured server-side and is not visible to a public crawl.</li></ul></div>
+  <div class="stack"><h3>Detected stack</h3><div class="stack-group"><div class="stack-vals">WooCommerce, Breadstack</div></div><div class="stack-group"><div class="stack-vals">POS not determinable (Breadstack frontend; backend POS hidden)</div></div><div class="stack-group"><div class="stack-vals">Klaviyo, Mailchimp</div></div><div class="stack-group"><div class="stack-vals">Google Reviews widget</div></div><div class="stack-group"><div class="stack-vals">AutomateWoo</div></div><div class="stack-group"><div class="stack-vals">GA4, GTM, Site Kit by Google</div></div><div class="stack-group"><div class="stack-vals">WordPress</div></div></div>
+  <div class="footer">Run your own report at <a href="https://dispensarystack.com">dispensarystack.com</a></div>
+</div>
+</body>
+</html>

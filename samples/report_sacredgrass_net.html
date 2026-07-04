@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Report Card &mdash; https://sacredgrass.net/</title>
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<style>
+  :root{--bg:#0f1419;--panel:#1a1f26;--line:#2a313b;--text:#e6e8eb;--muted:#8a93a0;--pass:#2ec27e;--fail:#e5484d;--warn:#f5a524;--accent:#5cd6ff}
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;line-height:1.5}
+  .wrap{max-width:880px;margin:0 auto;padding:32px 24px 64px}
+  h1{margin:0 0 4px;font-size:24px;font-weight:600}
+  .url{color:var(--muted);font-size:14px;word-break:break-all}
+  .scanned{color:var(--muted);font-size:12px;margin-top:4px}
+  .hero{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:28px;margin-top:24px;display:flex;align-items:center;gap:28px}
+  .grade{font-size:72px;font-weight:700;line-height:1;width:110px;text-align:center;padding:8px;border-radius:12px}
+  .grade.A{color:var(--pass);background:rgba(46,194,126,.08)}
+  .grade.B{color:#7bd88f;background:rgba(123,216,143,.08)}
+  .grade.C{color:var(--warn);background:rgba(245,165,36,.08)}
+  .grade.D{color:#ff8a3d;background:rgba(255,138,61,.08)}
+  .grade.F{color:var(--fail);background:rgba(229,72,77,.08)}
+  .score-num{font-size:40px;font-weight:600}
+  .score-sub{color:var(--muted);font-size:13px}
+  .category{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:20px 24px;margin-top:16px}
+  .cat-header{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:12px}
+  .cat-name{font-size:17px;font-weight:600}
+  .cat-meta{color:var(--muted);font-size:13px}
+  .bar{height:6px;background:rgba(255,255,255,.05);border-radius:3px;overflow:hidden;margin:8px 0 16px}
+  .bar>div{height:100%;transition:width .4s}
+  .bar.A>div{background:var(--pass)}.bar.B>div{background:#7bd88f}.bar.C>div{background:var(--warn)}.bar.D>div{background:#ff8a3d}.bar.F>div{background:var(--fail)}
+  .check{display:flex;gap:12px;padding:8px 0;border-bottom:1px solid var(--line);font-size:14px}
+  .check:last-child{border-bottom:none}
+  .mark{font-size:16px;min-width:20px}
+  .mark.pass{color:var(--pass)}.mark.fail{color:var(--fail)}.mark.partial{color:var(--warn)}
+  .check-body{flex:1}
+  .check-label{font-weight:500}
+  .check-detail{color:var(--muted);font-size:13px;margin-top:2px}
+  .check-pts{color:var(--muted);font-size:12px;min-width:56px;text-align:right}
+  .notes,.stack{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:20px 24px;margin-top:16px}
+  .notes h3,.stack h3{margin:0 0 12px;font-size:16px}
+  .notes h3{color:var(--accent)}
+  .notes ul{margin:0;padding-left:20px}
+  .notes li{margin:6px 0;font-size:14px}
+  .stack-group{display:flex;gap:12px;padding:6px 0;border-bottom:1px solid var(--line);font-size:13px}
+  .stack-group:last-child{border-bottom:none}
+  .stack-label{color:var(--muted);min-width:170px;font-weight:500}
+  .stack-vals{color:var(--text);flex:1}
+  .footer{color:var(--muted);font-size:12px;margin-top:32px;text-align:center}
+  .footer a{color:var(--accent);text-decoration:none}
+  .footer a:hover{text-decoration:underline}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Dispensary E-Commerce Report Card</h1>
+  <div class="url">https://sacredgrass.net/</div>
+  <div class="scanned">Scanned 2026-05-30T17:57:25.670936Z</div>
+  <div class="hero">
+    <div class="grade F">F</div>
+    <div>
+      <div class="score-num">15.5 / 100</div>
+      <div class="score-sub">Weighted across 7 categories</div>
+    </div>
+  </div>
+  <div class="category"><div class="cat-header"><div class="cat-name">SEO Fundamentals</div><div class="cat-meta">60/100 &middot; grade D &middot; weight 18%</div></div><div class="bar D"><div style="width:60.0%"></div></div><div class="check"><span class="mark partial">&#9680;</span><div class="check-body"><div class="check-label">Title tag (25–70 chars)</div><div class="check-detail">&quot;Sacred Grass Cannabis&quot; (21 chars)</div></div><div class="check-pts">1.5/3</div></div><div class="check"><span class="mark partial">&#9680;</span><div class="check-body"><div class="check-label">Meta description (70–165 chars)</div><div class="check-detail">57 chars</div></div><div class="check-pts">1.5/3</div></div><div class="check"><span class="mark pass">&#9679;</span><div class="check-body"><div class="check-label">Canonical URL</div><div class="check-detail">https://sacredgrass.net/</div></div><div class="check-pts">2.0/2</div></div><div class="check"><span class="mark pass">&#9679;</span><div class="check-body"><div class="check-label">Open Graph (title/description/image)</div><div class="check-detail">3/3 tags found: og:title, og:description, og:image</div></div><div class="check-pts">3.0/3</div></div><div class="check"><span class="mark fail">&#9675;</span><div class="check-body"><div class="check-label">Twitter Card</div><div class="check-detail">missing</div></div><div class="check-pts">0.0/1</div></div><div class="check"><span class="mark fail">&#9675;</span><div class="check-body"><div class="check-label">Product structured data (Schema.org)</div><div class="check-detail">no Product schema on sampled page</div></div><div class="check-pts">0.0/6</div></div><div class="check"><span class="mark pass">&#9679;</span><div class="check-body"><div class="check-label">robots.txt accessible</div><div class="check-detail">found</div></div><div class="check-pts">2.0/2</div></div><div class="check"><span class="mark pass">&#9679;</span><div class="check-body"><div class="check-label">sitemap.xml accessible</div><div class="check-detail">found</div></div><div class="check-pts">3.0/3</div></div><div class="check"><span class="mark pass">&#9679;</span><div class="check-body"><div class="check-label">Viewport meta (mobile)</div><div class="check-detail">set</div></div><div class="check-pts">2.0/2</div></div></div>
+<div class="category"><div class="cat-header"><div class="cat-name">E-commerce &amp; Platform</div><div class="cat-meta">28/100 &middot; grade F &middot; weight 17%</div></div><div class="bar F"><div style="width:27.5%"></div></div><div class="check"><span class="mark partial">&#9680;</span><div class="check-body"><div class="check-label">E-commerce platform tier (B): Cova-hosted shop</div><div class="check-detail">Cova-hosted e-commerce. The shop is a Cova-rendered SPA (often on a shop.* subdomain). Better than an iframe but client-rendered, so product pages are less indexable than a true on-domain WooCommerce/Shopify setup. SUBDOMAIN PENALTY: shop is on a different host than the main site (e.g. shop.example.com), which splits SEO authority. −5 points.</div></div><div class="check-pts">9.0/25</div></div><div class="check"><span class="mark fail">&#9675;</span><div class="check-body"><div class="check-label">Searchable terpene taxonomy</div><div class="check-detail">no terpene names detected — competitors with terpene filters/facets have a significant SEO + UX edge</div></div><div class="check-pts">0.0/3</div></div><div class="check"><span class="mark fail">&#9675;</span><div class="check-body"><div class="check-label">Minor cannabinoid mentions/filters</div><div class="check-detail">no minor cannabinoid mentions (CBN, CBG, CBC, etc.)</div></div><div class="check-pts">0.0/2</div></div><div class="check"><span class="mark fail">&#9675;</span><div class="check-body"><div class="check-label">Individual product pages discoverable</div><div class="check-detail">no product URLs discovered</div></div><div class="check-pts">0.0/5</div></div><div class="check"><span class="mark fail">&#9675;</span><div class="check-body"><div class="check-label">Clean URLs on product pages</div><div class="check-detail">no product URLs to evaluate</div></div><div class="check-pts">0.0/3</div></div><div class="check"><span class="mark pass">&#9679;</span><div class="check-body"><div class="check-label">Served over HTTPS</div><div class="check-detail">yes</div></div><div class="check-pts">2.0/2</div></div></div>
+<div class="category"><div class="cat-header"><div class="cat-name">Analytics &amp; Tracking</div><div class="cat-meta">0/100 &middot; grade F &middot; weight 10%</div></div><div class="bar F"><div style="width:0.0%"></div></div><div class="check"><span class="mark fail">&#9675;</span><div class="check-body"><div class="check-label">Google Analytics 4</div><div class="check-detail">not detected</div></div><div class="check-pts">0.0/5</div></div><div class="check"><span class="mark fail">&#9675;</span><div class="check-body"><div class="check-label">Google Tag Manager</div><div class="check-detail">not detected</div></div><div class="check-pts">0.0/3</div></div><div class="check"><span class="mark fail">&#9675;</span><div class="check-body"><div class="check-label">Google Search Console connection</div><div class="check-detail">no GSC meta tag or Site Kit (could still be verified via DNS/file)</div></div><div class="check-pts">0.0/3</div></div><div class="check"><span class="mark fail">&#9675;</span><div class="check-body"><div class="check-label">Meta (Facebook) Pixel</div><div class="check-detail">not detected</div></div><div class="check-pts">0.0/2</div></div><div class="check"><span class="mark fail">&#9675;</span><div class="check-body"><div class="check-label">TikTok Pixel</div><div class="check-detail">not detected</div></div><div class="check-pts">0.0/2</div></div></div>
+<div class="category"><div class="cat-header"><div class="cat-name">Email Marketing</div><div class="cat-meta">0/100 &middot; grade F &middot; weight 17%</div></div><div class="bar F"><div style="width:0.0%"></div></div><div class="check"><span class="mark fail">&#9675;</span><div class="check-body"><div class="check-label">Newsletter capture form present</div><div class="check-detail">no obvious signup form on homepage</div></div><div class="check-pts">0.0/5</div></div><div class="check"><span class="mark fail">&#9675;</span><div class="check-body"><div class="check-label">Email service provider quality</div><div class="check-detail">none detected — likely missing major retention revenue</div></div><div class="check-pts">0.0/20</div></div></div>
+<div class="category"><div class="cat-header"><div class="cat-name">Loyalty Program</div><div class="cat-meta">0/100 &middot; grade F &middot; weight 8%</div></div><div class="bar F"><div style="width:0.0%"></div></div><div class="check"><span class="mark fail">&#9675;</span><div class="check-body"><div class="check-label">Loyalty platform</div><div class="check-detail">no loyalty platform detected</div></div><div class="check-pts">0.0/15</div></div></div>
+<div class="category"><div class="cat-header"><div class="cat-name">Retention &amp; Reviews</div><div class="cat-meta">0/100 &middot; grade F &middot; weight 10%</div></div><div class="bar F"><div style="width:0.0%"></div></div><div class="check"><span class="mark fail">&#9675;</span><div class="check-body"><div class="check-label">Abandoned cart / post-purchase capability</div><div class="check-detail">no automation platform detected for abandoned cart / post-purchase</div></div><div class="check-pts">0.0/5</div></div><div class="check"><span class="mark fail">&#9675;</span><div class="check-body"><div class="check-label">Dedicated review platform</div><div class="check-detail">no dedicated review platform — likely missing post-purchase review requests</div></div><div class="check-pts">0.0/5</div></div><div class="check"><span class="mark fail">&#9675;</span><div class="check-body"><div class="check-label">Google Reviews social proof on site</div><div class="check-detail">no Google Reviews widget</div></div><div class="check-pts">0.0/2</div></div><div class="check"><span class="mark fail">&#9675;</span><div class="check-body"><div class="check-label">WooCommerce native reviews fallback</div><div class="check-detail">absent</div></div><div class="check-pts">0.0/3</div></div></div>
+<div class="category"><div class="cat-header"><div class="cat-name">Local Search &amp; Google Business Profile</div><div class="cat-meta">0/100 &middot; grade F &middot; weight 20%</div></div><div class="bar F"><div style="width:0.0%"></div></div><div class="check"><span class="mark fail">&#9675;</span><div class="check-body"><div class="check-label">Google reviews / Maps embedded on website</div><div class="check-detail">no Google content embedded — missing easy social proof</div></div><div class="check-pts">0.0/5</div></div><div class="check"><span class="mark fail">&#9675;</span><div class="check-body"><div class="check-label">Per-store landing pages present on site</div><div class="check-detail">single-location site, or no per-store landing pages detected</div></div><div class="check-pts">0.0/5</div></div><div class="check"><span class="mark partial">i</span><div class="check-body"><div class="check-label">Google Business Profile data</div><div class="check-detail">Skipped — no GOOGLE_PLACES_API_KEY configured. Add one to enable photo count, rating, review activity, and website-link attribution checks.</div></div><div class="check-pts">info</div></div></div>
+  <div class="notes"><h3>Notes &amp; recommendations</h3><ul><li>No abandoned-cart engine detected (no AutomateWoo, no Klaviyo). This is typically the single highest-ROI fix for dispensary e-commerce — abandoned-cart recovery alone often pays back platform costs in the first month.</li></ul></div>
+  <div class="stack"><h3>Detected stack</h3><div class="stack-group"><div class="stack-vals">Cova</div></div><div class="stack-group"><div class="stack-vals">WordPress</div></div></div>
+  <div class="footer">Run your own report at <a href="https://dispensarystack.com">dispensarystack.com</a></div>
+</div>
+</body>
+</html>

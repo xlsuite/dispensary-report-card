@@ -1,0 +1,30 @@
+# Render Blueprint — one-click deployment config
+#
+# When you connect this repo to Render, this file tells Render exactly
+# what kind of service to spin up. Don't edit unless you know what you're
+# doing — DEPLOY.md walks through the setup step by step.
+
+services:
+  - type: web
+    name: dispensary-report-card
+    runtime: python
+    plan: free
+    pythonVersion: "3.11"
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn app:app -k uvicorn.workers.UvicornWorker --bind 0.0.0.0:$PORT --workers 1 --timeout 60
+    healthCheckPath: /health
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.11.10"
+      - key: RATE_LIMIT
+        value: "5"
+      - key: RATE_WINDOW
+        value: "3600"
+      # Optional — enables Google Business Profile checks in the report.
+      # When unset, the scanner still runs and scores everything else;
+      # the GBP category only credits website-visible signals.
+      # To enable: get a Places API key (see DEPLOY.md Part 5), then add
+      # this env var in the Render dashboard (Settings -> Environment).
+      - key: GOOGLE_PLACES_API_KEY
+        sync: false  # tells Render to prompt for the value on first deploy
+    autoDeploy: true

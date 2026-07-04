@@ -323,6 +323,27 @@ def test_products_plural_urls_are_product_like():
     assert urls == ["https://chrontact.ca/products/some-item"], f"got: {urls}"
 
 
+def test_gsc_and_pixels_are_advisory_not_penalties():
+    """GSC verification via DNS/GA/GTM is invisible in HTML, so a missing
+    GSC signal must be a zero-point advisory, not a deduction. Meta/TikTok
+    pixels are informational only. When GSC IS visible, it still earns 3/3."""
+    ids = {"ga4": [], "gtm": []}
+
+    bare = "<html><head><title>x</title></head><body></body></html>"
+    cat = rc.score_analytics(bare, ids)
+    gsc = next(c for c in cat.checks if c.key == "gsc")
+    assert gsc.points_possible == 0, "missing GSC must not shrink the score"
+    assert "verify" in gsc.detail.lower() or "confirm" in gsc.detail.lower()
+    for key in ("meta_pixel", "tiktok_pixel"):
+        chk = next(c for c in cat.checks if c.key == key)
+        assert chk.points_possible == 0, f"{key} should be informational"
+
+    verified = '<html><head><meta name="google-site-verification" content="abc"></head></html>'
+    cat2 = rc.score_analytics(verified, ids)
+    gsc2 = next(c for c in cat2.checks if c.key == "gsc")
+    assert gsc2.points_earned == 3 and gsc2.points_possible == 3
+
+
 def test_loyalty_aiq_bundled_only_does_not_credit_full():
     """The Breadstack bundled CSS class alone gets 3 pts, not 15."""
     soup = BeautifulSoup(STOKD_FIXTURE, "lxml")
@@ -742,6 +763,7 @@ TESTS = [
     ("Platform tier: Hifyre (FIKA) = A (22 pts)", test_platform_tier_hifyre_is_A),
     ("Loyalty: Spark Rewards (FIKA/Hifyre) detected", test_spark_rewards_loyalty_detected),
     ("Product URL filter: /products/ plural matches", test_products_plural_urls_are_product_like),
+    ("Analytics: GSC + pixels advisory, no deductions", test_gsc_and_pixels_are_advisory_not_penalties),
     ("Subdomain penalty -5", test_subdomain_penalty_applies),
     ("Terpene taxonomy detection", test_terpene_taxonomy_detection),
     ("Minor cannabinoid detection", test_minor_cannabinoid_detection),

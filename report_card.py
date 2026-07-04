@@ -832,38 +832,51 @@ def score_analytics(html: str, ids: dict[str, list[str]]) -> Category:
         else "not detected"
     ))
 
-    # GSC verification — site-verification meta tag OR Site Kit by Google
+    # GSC verification — we can only SEE two of Google's five verification
+    # methods (the meta tag, and Site Kit which implies a connection).
+    # DNS-record, HTML-file, Google Analytics, and Tag Manager verification
+    # are invisible in the page HTML. So: credit when visible, but when NOT
+    # visible it's a zero-point advisory (yellow flag), never a deduction —
+    # plenty of well-run sites verify via DNS/GTM.
     has_gsc_meta = bool(re.search(
         r'meta\s+[^>]*name=["\']google-site-verification["\']',
         html, re.IGNORECASE))
     has_site_kit = detect(html, "site_kit")
     has_gsc = has_gsc_meta or has_site_kit
-    detail = []
-    if has_gsc_meta:
-        detail.append("google-site-verification meta tag present")
-    if has_site_kit:
-        detail.append("Site Kit by Google detected (implies GSC connection)")
-    cat.checks.append(Check(
-        "gsc", "Google Search Console connection", has_gsc,
-        3 if has_gsc else 0, 3,
-        "; ".join(detail) if detail
-        else "no GSC meta tag or Site Kit (could still be verified via DNS/file)"
-    ))
+    if has_gsc:
+        detail = []
+        if has_gsc_meta:
+            detail.append("google-site-verification meta tag present")
+        if has_site_kit:
+            detail.append("Site Kit by Google detected (implies GSC connection)")
+        cat.checks.append(Check(
+            "gsc", "Google Search Console connection", True,
+            3, 3, "; ".join(detail)
+        ))
+    else:
+        cat.checks.append(Check(
+            "gsc", "Google Search Console connection", False,
+            0, 0,  # advisory only — not scored
+            "couldn't verify from the site's HTML. GSC is often connected "
+            "via DNS, Google Analytics, or Tag Manager, which isn't "
+            "publicly visible — so no points are deducted. Action: confirm "
+            "in Search Console that this site is verified and receiving data."
+        ))
 
-    # Meta Pixel
+    # Meta / TikTok pixels — informational only, not scored. Paid-social
+    # tracking is a strategy choice, not a table-stakes requirement.
     has_meta = detect(html, "meta_pixel")
     cat.checks.append(Check(
         "meta_pixel", "Meta (Facebook) Pixel", has_meta,
-        2 if has_meta else 0, 2,
-        "loaded" if has_meta else "not detected"
+        0, 0,
+        ("loaded" if has_meta else "not detected") + " (informational — not scored)"
     ))
 
-    # TikTok Pixel
     has_tt = detect(html, "tiktok_pixel")
     cat.checks.append(Check(
         "tiktok_pixel", "TikTok Pixel", has_tt,
-        2 if has_tt else 0, 2,
-        "loaded" if has_tt else "not detected"
+        0, 0,
+        ("loaded" if has_tt else "not detected") + " (informational — not scored)"
     ))
 
     return cat

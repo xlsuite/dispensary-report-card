@@ -293,4 +293,40 @@ you can set a budget alert in step 5d to make sure.
 
 ---
 
-Done. The site is live, on your domain, with SSL, for $0/month.
+## Part 6 — Lead capture (email gate + admin page)
+
+The app stores every scan and gates the full report behind an email.
+Two things to set up, both one-time:
+
+### 6a. The persistent disk
+
+`render.yaml` declares a 1 GB disk mounted at `/data` — the SQLite database
+(reports + leads) lives there and survives deploys. When you push a commit
+after adding the disk config, Render may ask you to approve the blueprint
+change; approve it. Cost: about $0.25/month. Note: services with disks
+have ~30-60 seconds of downtime during each deploy (no zero-downtime
+deploys with disks) — a non-issue at this stage.
+
+### 6b. The admin key
+
+1. Render dashboard -> your service -> **Environment** -> **Add Environment
+   Variable**.
+2. Key: `ADMIN_KEY`. Value: a long random string (30+ characters — use a
+   password generator). Treat it like a password; anyone with it can see
+   your leads.
+3. Save. After the redeploy:
+   - Leads dashboard: `https://dispensarystack.com/admin?key=YOUR_KEY`
+   - CSV export: `https://dispensarystack.com/admin.csv?key=YOUR_KEY`
+
+If `ADMIN_KEY` is never set, the admin pages simply don't exist (404).
+
+### 6c. CASL note (Canada)
+
+The email gate stores a `marketing_consent` flag: it's 1 only when the
+visitor ticked the optional "send me tips" checkbox. Emails with
+consent=0 unlocked a report and nothing more — don't import those into
+marketing campaigns. The CSV includes the flag so you can filter.
+
+---
+
+Done. The site is live, on your domain, with SSL, capturing leads.

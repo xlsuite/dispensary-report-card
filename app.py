@@ -374,7 +374,7 @@ async def health():
 
 
 REPORT_HEADER_TEMPLATE = (
-    '<div style="background: #0f1419; padding: 16px 24px; '
+    '<div class="no-print" style="background: #0f1419; padding: 16px 24px; '
     'border-bottom: 1px solid #2a313b; '
     'font-family: -apple-system, BlinkMacSystemFont, sans-serif; '
     'color: #8a93a0; font-size: 13px;">'
@@ -477,7 +477,9 @@ def _teaser_html(full_html: str, token: str) -> str:
     email gate. Detail is removed server-side (not hidden with CSS), so
     view-source reveals nothing."""
     soup = BeautifulSoup(full_html, "lxml")
-    for el in soup.select(".check, .notes, .stack"):
+    # .priority ("Where to start" fix list) is the core gated value —
+    # strip it along with check details, notes, and the stack.
+    for el in soup.select(".check, .notes, .stack, .priority"):
         el.decompose()
     gate = BeautifulSoup(GATE_HTML.replace("__TOKEN__", token), "lxml")
     footer = soup.select_one(".footer")

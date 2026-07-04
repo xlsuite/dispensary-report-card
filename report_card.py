@@ -188,6 +188,139 @@ TERPENE_NAMES = [
 MINOR_CANNABINOIDS = ["CBN", "CBG", "CBC", "CBDV", "THCV", "CBDA", "THCA"]
 
 
+# ---------------------------------------------------------------------------
+# Fix guidance — shown in the report under any check that lost points.
+# Written for a dispensary owner/manager, not a developer: what to do,
+# in what tool, and why it matters.
+# ---------------------------------------------------------------------------
+
+FIXES: dict[str, str] = {
+    # --- SEO ---
+    "title": ("Rewrite the homepage title tag to 25–70 characters and lead "
+              "with what customers search: '[Store] | Cannabis Dispensary in "
+              "[City] – Pickup & Delivery'. Set it in your SEO plugin "
+              "(Yoast/Rank Math) or store settings."),
+    "meta_description": ("Write a 70–165 character meta description with your "
+                         "city, pickup/delivery options, and a reason to click. "
+                         "This is free ad copy on the Google results page — "
+                         "set it in Yoast/Rank Math."),
+    "open_graph": ("Add Open Graph tags (og:title, og:description, og:image). "
+                   "Your SEO plugin has fields for these. Without them, links "
+                   "shared by text or social show as a bare URL with no image."),
+    "twitter_card": ("Enable the 'summary_large_image' card in your SEO "
+                     "plugin's social settings — one checkbox."),
+    "canonical": ("Add a canonical link tag to every page so Google doesn't "
+                  "split ranking credit between URL variants. SEO plugins do "
+                  "this automatically once enabled."),
+    "viewport": ("Add the mobile viewport meta tag. Most dispensary traffic "
+                 "is on phones; without it Google treats the site as not "
+                 "mobile-friendly. Any developer fixes this in minutes."),
+    "product_schema": ("Add Product structured data (Schema.org JSON-LD) to "
+                       "product pages: name, brand, price, availability. This "
+                       "is what earns rich results in Google. WooCommerce has "
+                       "free plugins; on other platforms ask your provider."),
+    "robots_txt": ("Serve a robots.txt at yourdomain.com/robots.txt that "
+                   "allows crawling and points to your sitemap "
+                   "('Sitemap: https://yourdomain.com/sitemap.xml')."),
+    "sitemap_xml": ("Generate an XML sitemap (Yoast/Rank Math create one "
+                    "automatically), then submit it in Google Search Console "
+                    "so Google finds every product page."),
+    # --- E-commerce & platform ---
+    "platform_tier": ("If your menu lives in an embedded iframe (Dutchie/Jane "
+                      "style), Google cannot see a single product you sell — "
+                      "you're invisible for every product and strain search in "
+                      "your city. Plan a migration to on-domain e-commerce "
+                      "(e.g. WooCommerce synced to your POS, or a platform "
+                      "with real same-domain product pages). Highest-impact "
+                      "item on this report."),
+    "product_pages": ("Google can't discover individual product URLs. Ensure "
+                      "every product has its own page on YOUR domain and that "
+                      "those pages are listed in your XML sitemap."),
+    "clean_urls": ("Use readable product URLs like /product/blue-dream-3-5g "
+                   "instead of IDs or query strings. This is a permalink "
+                   "setting in most platforms."),
+    "https": ("Install an SSL certificate and force HTTPS everywhere. "
+              "Browsers label HTTP sites 'not secure' and Google demotes "
+              "them. Your host provides SSL free (Let's Encrypt)."),
+    "terpene_taxonomy": ("Add terpene profiles to product pages and make them "
+                         "filterable. Terpene-based searches are growing and "
+                         "almost no competitor optimizes for them — cheap "
+                         "differentiation."),
+    "minor_cannabinoids": ("Surface minor cannabinoids (CBN, CBG, THCV…) on "
+                           "product pages and in filters. Searches like 'CBN "
+                           "for sleep' convert well with thin competition."),
+    # --- Analytics ---
+    "ga4": ("Install Google Analytics 4 — via Google Tag Manager or the "
+            "Site Kit plugin on WordPress. Right now you can't see where "
+            "visitors come from or what converts; every marketing dollar is "
+            "unmeasured."),
+    "gtm": ("Add Google Tag Manager. It lets you deploy analytics and pixels "
+            "yourself without waiting on a developer for every change."),
+    # --- Email ---
+    "newsletter_form": ("Add an email capture form to the homepage (footer "
+                        "and/or exit popup) with an incentive like '10% off "
+                        "your first pickup'. Email is the highest-ROI channel "
+                        "a dispensary owns — no ad platform restrictions."),
+    "esp": ("Connect a proper e-commerce email platform. Klaviyo is "
+            "best-in-class for abandoned-cart and win-back flows tied to "
+            "purchase data; basic newsletter tools leave that revenue on "
+            "the table."),
+    "esp_conflict": ("Two email platforms are loading at once — consolidate "
+                     "to one. Split lists mean duplicate sends, broken "
+                     "suppression, and messy attribution."),
+    # --- Loyalty ---
+    "loyalty_platform": ("Launch a loyalty program — AlpineIQ and Springbig "
+                         "lead the cannabis space. Repeat customers drive the "
+                         "majority of dispensary revenue; points + SMS/email "
+                         "win-backs are the retention engine."),
+    # --- Retention & reviews ---
+    "automation_capability": ("Set up abandoned-cart and post-purchase flows "
+                              "(Klaviyo, or AutomateWoo on WooCommerce). "
+                              "One-time setup that recovers revenue on "
+                              "autopilot."),
+    "review_platform": ("Add a product review platform (Judge.me, Stamped, "
+                        "Yotpo) or enable your platform's native reviews. "
+                        "Reviews lift conversion AND feed Google fresh "
+                        "product content."),
+    "social_proof_on_site": ("Embed your Google rating and recent reviews on "
+                             "the site — free widgets exist for WordPress. "
+                             "You already earned the stars; make them sell."),
+    # --- Local search / GBP ---
+    "multi_store_pages": ("Create one landing page per store: address, hours, "
+                          "embedded map, parking notes, and a link to THAT "
+                          "store's menu. This is the foundation for ranking "
+                          "in each store's city."),
+    "gbp_found": ("Claim (or create) your Google Business Profile at "
+                  "business.google.com — without it you don't exist in "
+                  "Maps or the local pack."),
+    "gbp_completeness": ("Fill in phone, address, website, and hours "
+                         "completely in the Google Business Profile "
+                         "dashboard. Incomplete profiles rank worse."),
+    "gbp_rating": ("Build review volume: ask at pickup with a QR code on the "
+                   "counter or receipt. Both count and recency matter for "
+                   "local ranking."),
+    "gbp_recent_review": ("Review activity has gone stale. Restart the "
+                          "ask-at-checkout habit — Google favors profiles "
+                          "with fresh reviews."),
+    "gbp_owner_replies": ("Reply to reviews — all of them, especially the "
+                          "negative ones. It's a ranking signal and shows "
+                          "prospective customers you're responsive."),
+    "gbp_photos": ("Upload 10+ real photos: storefront, interior, staff, "
+                   "products. Profiles with photos get materially more "
+                   "clicks and direction requests."),
+    "gbp_website_match": ("Point your GBP website link at your exact HTTPS "
+                          "domain so profile authority flows to the site "
+                          "Google is ranking."),
+    "gbp_website_utm": ("Add UTM parameters to the GBP website link (e.g. "
+                        "?utm_source=google&utm_medium=organic&utm_campaign=gbp) "
+                        "so GA4 shows you how much traffic Maps actually "
+                        "drives."),
+    "gbp_deep_link": ("Each store's GBP should link to that store's own page "
+                      "or menu — not the homepage. Deep links convert better "
+                      "and reinforce per-store relevance."),
+}
+
+
 def detect_iframe_platform(html: str, soup) -> str | None:
     """Return the name of a cannabis ecom platform embedded as an iframe,
     or None. Checks both the parsed soup (homepage iframes) AND raw HTML
@@ -1794,6 +1927,34 @@ HTML_TEMPLATE = """<!doctype html>
   .footer{color:var(--muted);font-size:12px;margin-top:32px;text-align:center}
   .footer a{color:var(--accent);text-decoration:none}
   .footer a:hover{text-decoration:underline}
+  .check-fix{margin-top:6px;padding:8px 12px;background:rgba(92,214,255,0.06);
+    border-left:3px solid var(--accent);border-radius:0 6px 6px 0;
+    font-size:13px;color:var(--text)}
+  .check-fix b{color:var(--accent)}
+  .priority{background:var(--panel);border:1px solid var(--accent);
+    border-radius:14px;padding:24px 28px;margin:24px 0}
+  .priority h3{margin:0 0 4px;font-size:18px}
+  .priority .sub{color:var(--muted);font-size:13px;margin-bottom:14px}
+  .priority ol{margin:0;padding-left:22px}
+  .priority li{margin-bottom:12px;font-size:14px}
+  .priority li b{display:block;margin-bottom:2px}
+  .priority .impact{color:var(--muted);font-size:12px}
+  .pdf-btn{margin-left:auto;padding:10px 18px;font-size:14px;font-weight:600;
+    background:transparent;color:var(--accent);border:1px solid var(--accent);
+    border-radius:8px;cursor:pointer}
+  .pdf-btn:hover{background:rgba(92,214,255,0.1)}
+  @media print{
+    .no-print{display:none !important}
+    body{background:#fff;color:#111}
+    .wrap{max-width:100%;padding:0}
+    .category,.priority,.notes,.stack,.hero{background:#fff;
+      border-color:#ccc;break-inside:avoid}
+    .check-label,.priority li,.cat-name,h1,h3{color:#111}
+    .check-detail,.check-fix,.priority .sub,.impact,.url,.scanned,
+    .score-sub,.cat-meta,.stack-vals{color:#444}
+    .check-fix{background:#f2f9fc;border-left-color:#2a9dc4}
+    .footer{color:#666}
+  }
 </style>
 </head>
 <body>
@@ -1807,7 +1968,9 @@ HTML_TEMPLATE = """<!doctype html>
       <div class="score-num">PERCENT_PLACEHOLDER / 100</div>
       <div class="score-sub">Weighted across 7 categories</div>
     </div>
+    <button class="pdf-btn no-print" onclick="window.print()">Download PDF</button>
   </div>
+  PRIORITY_PLACEHOLDER
   CATEGORIES_PLACEHOLDER
   NOTES_PLACEHOLDER
   <div class="stack"><h3>Detected stack</h3>STACK_PLACEHOLDER</div>
@@ -1837,11 +2000,17 @@ def render_html(report):
                 mark = '<span class="mark partial">&#9680;</span>'
             pts = (f"{c.points_earned:.1f}/{c.points_possible:.0f}"
                    if c.points_possible else "info")
+            fix_html = ''
+            if (c.points_possible > 0 and c.points_earned < c.points_possible
+                    and c.key in FIXES):
+                fix_html = ('<div class="check-fix"><b>How to fix:</b> '
+                            + escape(FIXES[c.key]) + '</div>')
             rows.append(
                 '<div class="check">' + mark
                 + '<div class="check-body">'
                 + '<div class="check-label">' + escape(c.label) + '</div>'
                 + '<div class="check-detail">' + escape(c.detail) + '</div>'
+                + fix_html
                 + '</div><div class="check-pts">' + pts + '</div></div>')
         bar = min(100, max(0, cat.percent))
         return ('<div class="category"><div class="cat-header">'
@@ -1851,6 +2020,31 @@ def render_html(report):
                 + ''.join(rows) + '</div>')
 
     cats = "\n".join(cat_block(c) for c in report.categories)
+
+    # Priority fixes — the 5 checks costing the most overall points,
+    # weighted by category weight, each with its remediation.
+    losses = []
+    for cat in report.categories:
+        if not cat.points_possible:
+            continue
+        for c in cat.checks:
+            lost = c.points_possible - c.points_earned
+            if lost <= 0 or c.key not in FIXES:
+                continue
+            overall_impact = 100.0 * lost / cat.points_possible * cat.weight
+            losses.append((overall_impact, c.label, FIXES[c.key]))
+    losses.sort(key=lambda x: -x[0])
+    priority = ''
+    if losses:
+        items = ''.join(
+            '<li><b>' + escape(label) + '</b>' + escape(fix)
+            + f'<div class="impact">Worth up to +{impact:.1f} points on the overall score</div></li>'
+            for impact, label, fix in losses[:5])
+        priority = ('<div class="priority"><h3>Where to start</h3>'
+                    '<div class="sub">The five fixes below would move this '
+                    'score the most, in order of impact.</div>'
+                    '<ol>' + items + '</ol></div>')
+
     notes = ''
     if report.notes:
         notes = ('<div class="notes"><h3>Notes &amp; recommendations</h3><ul>'
@@ -1871,6 +2065,7 @@ def render_html(report):
             .replace("SCANNED_PLACEHOLDER", escape(report.scanned_at))
             .replace("LETTER_PLACEHOLDER", report.overall_letter)
             .replace("PERCENT_PLACEHOLDER", f"{report.overall_percent:.1f}")
+            .replace("PRIORITY_PLACEHOLDER", priority)
             .replace("CATEGORIES_PLACEHOLDER", cats)
             .replace("NOTES_PLACEHOLDER", notes)
             .replace("STACK_PLACEHOLDER", stack))

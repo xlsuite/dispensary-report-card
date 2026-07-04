@@ -344,6 +344,37 @@ def test_gsc_and_pixels_are_advisory_not_penalties():
     assert gsc2.points_earned == 3 and gsc2.points_possible == 3
 
 
+def test_fix_guidance_rendered_for_failing_checks():
+    """Failing checks must show 'How to fix' guidance; the report must open
+    with a prioritized 'Where to start' section; passing checks get no fix."""
+    routes = {
+        "stokd.ca/robots.txt": "User-agent: *\nAllow: /\nSitemap: https://stokd.ca/sitemap.xml",
+        "stokd.ca/sitemap.xml": STOKD_SITEMAP,
+        "stokd.ca/product-sitemap1.xml": STOKD_PRODUCT_SITEMAP,
+        "stokd.ca/product/soar-widow-pop": STOKD_PRODUCT_PAGE,
+        "stokd.ca/": STOKD_FIXTURE,
+    }
+    original_fetch = rc.fetch
+    rc.fetch = make_fake_fetch(routes)
+    try:
+        report = rc.scan("https://stokd.ca/")
+    finally:
+        rc.fetch = original_fetch
+    html = rc.render_html(report)
+    assert "Where to start" in html, "priority fixes section missing"
+    assert "How to fix:" in html, "per-check fix guidance missing"
+    assert 'class="pdf-btn' in html, "PDF button missing"
+    assert "@media print" in html, "print stylesheet missing"
+    # every FIXES key must be a real check key or gbp key (guard against typos
+    # that would silently never render)
+    check_keys = {c.key for cat in report.categories for c in cat.checks}
+    # gbp_* checks need an API key; esp_conflict only exists when two ESPs
+    # collide — both legitimately absent from this fixture scan.
+    conditional = {k for k in rc.FIXES if k.startswith("gbp_")} | {"esp_conflict"}
+    for k in rc.FIXES:
+        assert k in check_keys or k in conditional, f"FIXES key '{k}' matches no check"
+
+
 def test_loyalty_aiq_bundled_only_does_not_credit_full():
     """The Breadstack bundled CSS class alone gets 3 pts, not 15."""
     soup = BeautifulSoup(STOKD_FIXTURE, "lxml")
@@ -764,6 +795,7 @@ TESTS = [
     ("Loyalty: Spark Rewards (FIKA/Hifyre) detected", test_spark_rewards_loyalty_detected),
     ("Product URL filter: /products/ plural matches", test_products_plural_urls_are_product_like),
     ("Analytics: GSC + pixels advisory, no deductions", test_gsc_and_pixels_are_advisory_not_penalties),
+    ("Report: fix guidance + priority section + PDF button", test_fix_guidance_rendered_for_failing_checks),
     ("Subdomain penalty -5", test_subdomain_penalty_applies),
     ("Terpene taxonomy detection", test_terpene_taxonomy_detection),
     ("Minor cannabinoid detection", test_minor_cannabinoid_detection),

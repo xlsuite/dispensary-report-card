@@ -363,9 +363,28 @@ def _error_page(message, status=400):
 # Routes
 # ---------------------------------------------------------------------------
 
+# The designed landing page (landing.html, built in Shuffle) is served when
+# present; the original inline page below stays as a fallback so the app
+# never 500s if the file goes missing.
+LANDING_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                            "landing.html")
+_landing_cache: str | None = None
+
+
+def _landing() -> str:
+    global _landing_cache
+    if _landing_cache is None:
+        try:
+            with open(LANDING_PATH, encoding="utf-8") as f:
+                _landing_cache = f.read()
+        except OSError:
+            _landing_cache = INDEX_HTML
+    return _landing_cache
+
+
 @app.get("/", response_class=HTMLResponse)
 async def index():
-    return HTMLResponse(INDEX_HTML)
+    return HTMLResponse(_landing())
 
 
 @app.get("/health")

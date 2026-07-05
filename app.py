@@ -40,8 +40,8 @@ from urllib.parse import urlparse
 import requests
 from bs4 import BeautifulSoup
 from fastapi import FastAPI, Form, HTTPException, Query, Request
-from fastapi.responses import (HTMLResponse, JSONResponse, PlainTextResponse,
-                               RedirectResponse)
+from fastapi.responses import (FileResponse, HTMLResponse, JSONResponse,
+                               PlainTextResponse, RedirectResponse)
 
 import db
 import report_card
@@ -403,6 +403,19 @@ async def index():
 @app.get("/health")
 async def health():
     return JSONResponse({"status": "ok"})
+
+
+SAMPLE_PDF_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                               "samples", "sample-report.pdf")
+
+
+@app.get("/sample-report.pdf")
+async def sample_report():
+    """Static sample report linked from the landing page. A static PDF (not a
+    live /r/ token) so it survives database resets and redeploys."""
+    if not os.path.exists(SAMPLE_PDF_PATH):
+        raise HTTPException(404)
+    return FileResponse(SAMPLE_PDF_PATH, media_type="application/pdf")
 
 
 REPORT_HEADER_TEMPLATE = (

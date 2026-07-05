@@ -401,8 +401,28 @@ async def index():
 
 
 @app.get("/health")
-async def health():
-    return JSONResponse({"status": "ok"})
+async def health(key: str = Query("")):
+    """Plain OK for Render's healthcheck; add ?key=ADMIN_KEY for storage
+    diagnostics (which file the DB is writing to, whether that path is on
+    the persistent disk, and current row counts)."""
+    info: dict = {"status": "ok"}
+    if _admin_ok(key):
+        db_path = os.environ.get("DB_PATH", "reports.db")
+        try:
+            n_scans, n_leads = db.counts()
+            info.update({
+                "db_path": db_path,
+                "db_path_env_set": "DB_PATH" in os.environ,
+                "db_dir_exists": os.path.isdir(os.path.dirname(db_path) or "."),
+                "db_file_exists": os.path.exists(db_path),
+                "on_persistent_disk": os.path.abspath(db_path).startswith("/data/"),
+                "scans": n_scans,
+                "leads": n_leads,
+            })
+        except Exception as e:
+            info["status"] = "db-error"
+            info["detail"] = str(e)
+    return JSONResponse(info)
 
 
 SAMPLE_PDF_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)),

@@ -410,7 +410,6 @@ ERROR_HTML_TEMPLATE = """<!doctype html>
   a { color: #5cd6ff; }
   .card { background: #1a1f26; border: 1px solid #2a313b; border-radius: 12px;
     padding: 24px; margin-top: 24px; }
-</style></head>
   .capture { background: #1a1f26; border: 1px solid #5cd6ff;
     border-radius: 12px; padding: 24px; margin-top: 20px; }
   .capture h2 { font-size: 18px; margin: 0 0 8px; color: #e6e8eb; }

@@ -332,7 +332,9 @@ INDEX_HTML = """<!doctype html>
   <form class="card" id="scan-form" action="/scan" method="get">
     <label for="url">Enter a dispensary website URL</label>
     <div class="row">
-      <input type="url" id="url" name="url"
+      <input type="text" id="url" name="url"
+             inputmode="url" autocapitalize="off" autocorrect="off"
+             spellcheck="false"
              placeholder="https://example-dispensary.com"
              required autofocus />
       <button type="submit" id="submit-btn">Get Report</button>
@@ -409,22 +411,72 @@ ERROR_HTML_TEMPLATE = """<!doctype html>
   .card { background: #1a1f26; border: 1px solid #2a313b; border-radius: 12px;
     padding: 24px; margin-top: 24px; }
 </style></head>
+  .capture { background: #1a1f26; border: 1px solid #5cd6ff;
+    border-radius: 12px; padding: 24px; margin-top: 20px; }
+  .capture h2 { font-size: 18px; margin: 0 0 8px; color: #e6e8eb; }
+  .capture .row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 14px; }
+  .capture input[type=email] { flex: 1; min-width: 220px; padding: 13px 15px;
+    font-size: 15px; background: #0a0e12; color: #e6e8eb;
+    border: 1px solid #2a313b; border-radius: 8px; outline: none; }
+  .capture button { padding: 13px 22px; font-size: 15px; font-weight: 600;
+    background: #5cd6ff; color: #0a0e12; border: none; border-radius: 8px;
+    cursor: pointer; }
+  .capture label { display: block; margin-top: 12px; font-size: 13px; }
+  .capture .fine { margin-top: 10px; font-size: 12px; }
+</style></head>
 <body><div class="wrap">
   <h1>We couldn't run that scan.</h1>
   <div class="card"><p>__MESSAGE__</p></div>
+  __CAPTURE__
   <p style="margin-top: 24px;"><a href="/">&larr; Try another URL</a></p>
 </div></body></html>"""
 
 
-def _error_page(message, status=400):
-    # Escape any HTML-special characters in the message
-    safe = (
-        str(message)
-        .replace("&", "&amp;")
-        .replace("<", "&lt;")
-        .replace(">", "&gt;")
-    )
-    body = ERROR_HTML_TEMPLATE.replace("__MESSAGE__", safe)
+CAPTURE_BLOCK = """
+  <div class="capture">
+    <h2>Want this report anyway? We'll run it by hand.</h2>
+    <p>Some sites block automated scanners. Leave your email and we'll run
+    the full report on <strong>__SITE__</strong> manually and send it over.</p>
+    <form method="post" action="/request-scan">
+      <input type="hidden" name="url" value="__URL__" />
+      <div class="row">
+        <input type="email" name="email" required
+               placeholder="you@yourdispensary.com" />
+        <button type="submit">Send me the report</button>
+      </div>
+      <label>
+        <input type="checkbox" name="consent" value="1" />
+        Also send me practical e-commerce tips for cannabis retailers (optional)
+      </label>
+      <p class="fine">We'll only use your email to send this report.</p>
+    </form>
+  </div>"""
+
+CAPTURE_THANKS = """
+  <div class="capture">
+    <h2>Got it — thank you.</h2>
+    <p>We'll run the report on <strong>__SITE__</strong> by hand and email it
+    to you shortly.</p>
+  </div>"""
+
+
+def _esc(s):
+    return (str(s).replace("&", "&amp;").replace("<", "&lt;")
+            .replace(">", "&gt;").replace('"', "&quot;"))
+
+
+def _error_page(message, status=400, capture_url=None):
+    """Standard error page. If capture_url is given, appends a 'run it for me'
+    email form — turns an unscannable site into a lead."""
+    safe = str(message).replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+    if capture_url:
+        host = urlparse(capture_url).hostname or capture_url
+        capture = (CAPTURE_BLOCK
+                   .replace("__URL__", _esc(capture_url))
+                   .replace("__SITE__", _esc(host)))
+    else:
+        capture = ""
+    body = ERROR_HTML_TEMPLATE.replace("__MESSAGE__", safe).replace("__CAPTURE__", capture)
     return HTMLResponse(body, status_code=status)
 
 
@@ -552,6 +604,7 @@ async def scan(request: Request, url: str = Query(...)):
                 "that blocks automated scanners, or it may be down. "
                 "Details: " + str(e),
                 status=502,
+                capture_url=safe_url,
             )
         finally:
             _ua_override = None
@@ -675,6 +728,30 @@ async def unlock(token: str = Form(...), email: str = Form(...),
     return resp
 
 
+@app.post("/request-scan", response_class=HTMLResponse)
+async def request_scan(url: str = Form(...), email: str = Form(...),
+                       consent: str = Form("")):
+    """Lead from the error page: a site we couldn't scan automatically. Store
+    the email + URL so it can be run and sent by hand."""
+    email = (email or "").strip()
+    if len(email) > 254 or not EMAIL_RE.match(email):
+        return _error_page("That email address doesn't look valid — please "
+                           "go back and try again.", capture_url=url)
+    # Validate the URL the same way /scan does; ignore if junk.
+    try:
+        safe_url = _validate_url(url)
+    except HTTPException:
+        safe_url = (url or "")[:500]
+    db.save_manual_request(email, safe_url, consent == "1")
+    log.info("manual scan request url=%s consent=%s", safe_url, consent == "1")
+    host = urlparse(safe_url).hostname or safe_url
+    body = (ERROR_HTML_TEMPLATE
+            .replace("__MESSAGE__", "Thanks — we're on it.")
+            .replace("__CAPTURE__",
+                     CAPTURE_THANKS.replace("__SITE__", _esc(host))))
+    return HTMLResponse(body)
+
+
 # ---------------------------------------------------------------------------
 # Admin: leads + scans (secret key), CSV export
 # ---------------------------------------------------------------------------
@@ -688,17 +765,26 @@ async def admin(key: str = Query("")):
     if not _admin_ok(key):
         raise HTTPException(404)
     n_scans, n_leads = db.counts()
-    lead_rows = "".join(
-        "<tr><td>{}</td><td>{}</td><td>{}</td><td>{}</td>"
-        "<td><a href='/r/{}'>{}</a></td></tr>".format(
-            escape_html(r["email"]),
-            "yes" if r["marketing_consent"] else "no",
-            escape_html(r["created_at"] or ""),
-            escape_html(r["hostname"] or "?"),
-            escape_html(r["scan_token"] or ""),
-            (str(r["score"]) + " (" + (r["grade"] or "?") + ")")
-            if r["score"] is not None else "?")
-        for r in db.list_leads())
+
+    def _lead_row(r):
+        manual = r["manual_url"]
+        if manual:  # "run it for me" lead from a blocked site
+            lead_type = "<b style='color:#f5a524'>manual — run by hand</b>"
+            site = escape_html(urlparse(manual).hostname or manual)
+            report = escape_html(manual)
+        else:
+            lead_type = "report unlock"
+            site = escape_html(r["hostname"] or "?")
+            report = ("<a href='/r/" + escape_html(r["scan_token"] or "")
+                      + "'>" + ((str(r["score"]) + " (" + (r["grade"] or "?")
+                      + ")") if r["score"] is not None else "view") + "</a>")
+        return ("<tr><td>{}</td><td>{}</td><td>{}</td><td>{}</td>"
+                "<td>{}</td><td>{}</td></tr>".format(
+                    escape_html(r["email"]), lead_type,
+                    "yes" if r["marketing_consent"] else "no",
+                    escape_html(r["created_at"] or ""), site, report))
+
+    lead_rows = "".join(_lead_row(r) for r in db.list_leads())
     scan_rows = "".join(
         "<tr><td>{}</td><td>{}</td><td>{}</td>"
         "<td><a href='/r/{}'>open</a></td></tr>".format(
@@ -726,14 +812,14 @@ async def admin(key: str = Query("")):
     <span class="pill">Leads: {n_leads}</span>
     <span class="pill"><a href="/admin.csv?key={key}">Download leads CSV</a></span></div>
     <h2>Leads (newest first)</h2>
-    <table><tr><th>Email</th><th>Marketing consent</th><th>Captured (UTC)</th>
-    <th>Site scanned</th><th>Score</th></tr>{lead_rows}</table>
+    <table><tr><th>Email</th><th>Type</th><th>Marketing consent</th>
+    <th>Captured (UTC)</th><th>Site</th><th>Report</th></tr>{lead_rows}</table>
     <h2>Scans (newest first)</h2>
     <table><tr><th>Site</th><th>Score</th><th>When (UTC)</th><th>Report</th></tr>
     {scan_rows}</table>
     </div></body></html>""".format(
         n_scans=n_scans, n_leads=n_leads, key=escape_html(key),
-        lead_rows=lead_rows or "<tr><td colspan='5'>none yet</td></tr>",
+        lead_rows=lead_rows or "<tr><td colspan='6'>none yet</td></tr>",
         scan_rows=scan_rows or "<tr><td colspan='4'>none yet</td></tr>")
     return HTMLResponse(page)
 

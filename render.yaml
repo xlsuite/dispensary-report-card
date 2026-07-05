@@ -8,9 +8,16 @@ services:
   - type: web
     name: dispensary-report-card
     runtime: python
-    plan: free
+    # Matches the paid tier you're on. Leaving this as "free" risks the
+    # blueprint downgrading the service on its next sync (which would also
+    # starve the extra worker of memory).
+    plan: starter
     buildCommand: pip install -r requirements.txt
-    startCommand: gunicorn app:app -k uvicorn.workers.UvicornWorker --bind 0.0.0.0:$PORT --workers 1 --timeout 90
+    # 2 workers so a long scan on one worker doesn't block the whole site:
+    # the landing page, /health, and stored reports stay responsive while a
+    # scan runs. Kept at 2 (not more) because Starter has 512 MB RAM and
+    # parsing large pages is memory-heavy — 3+ workers risks OOM.
+    startCommand: gunicorn app:app -k uvicorn.workers.UvicornWorker --bind 0.0.0.0:$PORT --workers 2 --timeout 90
     healthCheckPath: /health
     # Persistent disk for the SQLite database (stored reports + captured
     # leads survive deploys and restarts). ~$0.25/month at 1 GB.

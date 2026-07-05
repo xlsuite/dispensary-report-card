@@ -38,6 +38,15 @@ from collections import defaultdict
 from urllib.parse import urlparse
 
 import requests
+
+try:
+    # Impersonates a real Chrome TLS handshake — WAFs that fingerprint the
+    # connection (and 403 python-requests no matter what UA it sends) will
+    # serve this. Used only on the retry path after an honest attempt fails.
+    from curl_cffi import requests as curl_requests
+except ImportError:  # keeps local dev working without the dependency
+    curl_requests = None
+
 from bs4 import BeautifulSoup
 from fastapi import FastAPI, Form, HTTPException, Query, Request
 from fastapi.responses import (FileResponse, HTMLResponse, JSONResponse,
@@ -104,6 +113,20 @@ def _public_fetch(url, timeout=PUBLIC_FETCH_TIMEOUT):
     remaining = _scan_deadline - time.time()
     if remaining <= 0:
         return None
+    # Retry mode: impersonate Chrome at the TLS level, not just the UA header.
+    if _ua_override and curl_requests is not None:
+        try:
+            resp = curl_requests.get(
+                url,
+                impersonate="chrome",
+                cookies=report_card.AGE_GATE_COOKIES,
+                timeout=min(PUBLIC_FETCH_TIMEOUT, max(1.0, remaining)),
+                allow_redirects=True,
+            )
+            return SlimResponse(resp.text[:MAX_FETCH_BYTES], str(resp.url),
+                                resp.status_code)
+        except Exception:
+            return None
     try:
         resp = requests.get(
             url,

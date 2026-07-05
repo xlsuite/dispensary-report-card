@@ -43,8 +43,11 @@ try:
     # Impersonates a real Chrome TLS handshake — WAFs that fingerprint the
     # connection (and 403 python-requests no matter what UA it sends) will
     # serve this. Used only on the retry path after an honest attempt fails.
+    # Catch *any* failure, not just ImportError: curl-cffi is a compiled
+    # package and a broken binary raises OSError/RuntimeError on import —
+    # which must NOT take the whole app down (it would crash-loop → 502).
     from curl_cffi import requests as curl_requests
-except ImportError:  # keeps local dev working without the dependency
+except Exception:  # noqa: BLE001 — degrade gracefully, never crash on boot
     curl_requests = None
 
 from bs4 import BeautifulSoup
@@ -60,7 +63,15 @@ log = logging.getLogger("report-card-web")
 
 app = FastAPI(title="Dispensary Report Card", docs_url=None, redoc_url=None)
 
-db.init()
+# Initialise the database at boot, but never let a storage problem (e.g. the
+# persistent disk not mounted at DB_PATH) crash-loop the whole app into a 502.
+# If this fails, the site still serves and /health surfaces the error.
+DB_INIT_ERROR: str | None = None
+try:
+    db.init()
+except Exception as e:  # noqa: BLE001
+    DB_INIT_ERROR = str(e)
+    logging.getLogger("report-card-web").error("db.init failed: %s", e)
 
 # Secret for the /admin page. If unset, the admin page is disabled (404).
 ADMIN_KEY = os.environ.get("ADMIN_KEY", "")
@@ -514,6 +525,8 @@ async def health(key: str = Query("")):
     the persistent disk, and current row counts)."""
     info: dict = {"status": "ok"}
     if _admin_ok(key):
+        if DB_INIT_ERROR:
+            info["db_init_error"] = DB_INIT_ERROR
         db_path = os.environ.get("DB_PATH", "reports.db")
         try:
             n_scans, n_leads = db.counts()

@@ -75,25 +75,58 @@ PUBLIC_FETCH_TIMEOUT = 8.0  # seconds per HTTP request
 SCAN_WALL_BUDGET = 40.0
 _scan_deadline = 0.0
 
+# Per-page download cap. Some dispensary homepages are multi-megabyte
+# (plantlifecannabis.com serves 2.8 MB of HTML); parsing several of those
+# OOM-kills a 512 MB instance mid-scan -> 502. Every signature we detect
+# lives comfortably inside the first 1.5 MB.
+MAX_FETCH_BYTES = 1_500_000
+
+DEFAULT_UA = "DispensaryStack/1.0 (+https://dispensarystack.com)"
+# Some WAFs (Wordfence/Cloudflare bot rules) drop unknown scanner UAs on
+# sight. When the polite UA can't even fetch the homepage, we retry the
+# scan once presenting as a normal browser.
+BROWSER_UA = ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+              "(KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36")
+_ua_override: str | None = None
+
+
+class SlimResponse:
+    """Just the attributes the scanner uses, with a size-capped body."""
+
+    def __init__(self, text: str, url: str, status_code: int):
+        self.text = text
+        self.url = url
+        self.status_code = status_code
+        self.ok = 200 <= status_code < 400
+
 
 def _public_fetch(url, timeout=PUBLIC_FETCH_TIMEOUT):
     remaining = _scan_deadline - time.time()
     if remaining <= 0:
         return None
     try:
-        return requests.get(
+        resp = requests.get(
             url,
             headers={
-                "User-Agent": (
-                    "DispensaryStack/1.0 (+https://dispensarystack.com)"
-                ),
+                "User-Agent": _ua_override or DEFAULT_UA,
                 "Accept-Language": "en-US,en;q=0.9",
             },
             cookies=report_card.AGE_GATE_COOKIES,
             # Never let a single fetch overshoot the remaining scan budget.
             timeout=min(PUBLIC_FETCH_TIMEOUT, max(1.0, remaining)),
             allow_redirects=True,
+            stream=True,
         )
+        chunks, size = [], 0
+        for chunk in resp.iter_content(chunk_size=65536):
+            chunks.append(chunk)
+            size += len(chunk)
+            if size >= MAX_FETCH_BYTES:
+                break
+        resp.close()
+        text = b"".join(chunks).decode(resp.encoding or "utf-8",
+                                       errors="replace")
+        return SlimResponse(text, str(resp.url), resp.status_code)
     except requests.RequestException:
         return None
 
@@ -477,15 +510,28 @@ async def scan(request: Request, url: str = Query(...)):
     log.info("scan start ip=%s url=%s", ip, safe_url)
     t0 = time.time()
     api_key = os.environ.get("GOOGLE_PLACES_API_KEY") or None
+    global _ua_override
     try:
         result = report_card.scan(safe_url, gbp_api_key=api_key)
-    except report_card.ScanError as e:
-        log.warning("scan failed url=%s err=%s", safe_url, e)
-        return _error_page(
-            "We couldn't fetch this site. The server returned an error or timed out. "
-            "Details: " + str(e),
-            status=502,
-        )
+    except report_card.ScanError:
+        # Couldn't fetch the homepage with our honest scanner UA. Retry the
+        # whole scan once presenting as a normal browser — WAFs commonly
+        # block unknown bots while serving browsers fine.
+        log.info("retrying with browser UA url=%s", safe_url)
+        _ua_override = BROWSER_UA
+        _scan_deadline = time.time() + SCAN_WALL_BUDGET
+        try:
+            result = report_card.scan(safe_url, gbp_api_key=api_key)
+        except report_card.ScanError as e:
+            log.warning("scan failed url=%s err=%s", safe_url, e)
+            return _error_page(
+                "We couldn't fetch this site — it may be behind a firewall "
+                "that blocks automated scanners, or it may be down. "
+                "Details: " + str(e),
+                status=502,
+            )
+        finally:
+            _ua_override = None
     except Exception:
         log.exception("unexpected scan error")
         return _error_page(

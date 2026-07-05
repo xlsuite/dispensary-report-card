@@ -425,6 +425,55 @@
   }
 })();
 </script>
+
+<script>
+/* Scan progress indicator: the /scan request is a full page navigation that
+   takes 10-40s, so show a spinner + rotating status messages meanwhile. */
+(function () {
+  var style = document.createElement('style');
+  style.textContent = '@keyframes dsrspin{to{transform:rotate(360deg)}}' +
+    '.dsr-status{display:flex;align-items:center;gap:10px;margin-top:14px;' +
+    'font-size:14px;color:#5cd6ff}' +
+    '.dsr-spinner{width:16px;height:16px;border:2px solid #5cd6ff;' +
+    'border-top-color:transparent;border-radius:50%;flex:none;' +
+    'animation:dsrspin .8s linear infinite}';
+  document.head.appendChild(style);
+
+  var msgs = [
+    'Fetching the homepage\u2026',
+    'Reading robots.txt and sitemap\u2026',
+    'Sampling product pages\u2026',
+    'Detecting your e-commerce platform\u2026',
+    'Checking email, loyalty & analytics tags\u2026',
+    'Looking up your Google Business Profile\u2026',
+    'Grading 30+ checks\u2026',
+    'Almost there \u2014 building your report\u2026'
+  ];
+
+  document.querySelectorAll('form[action="/scan"]').forEach(function (f) {
+    f.addEventListener('submit', function () {
+      var btn = f.querySelector('button[type="submit"]');
+      if (btn) {
+        btn.disabled = true;
+        btn.textContent = 'Scanning\u2026';
+        btn.style.opacity = '0.65';
+        btn.style.cursor = 'wait';
+      }
+      var status = document.createElement('div');
+      status.className = 'dsr-status';
+      status.innerHTML = '<span class="dsr-spinner"></span><span></span>';
+      f.insertAdjacentElement('afterend', status);
+      var msgEl = status.querySelector('span:last-child');
+      var i = 0;
+      msgEl.textContent = msgs[0];
+      setInterval(function () {
+        i = Math.min(i + 1, msgs.length - 1);
+        msgEl.textContent = msgs[i];
+      }, 4000);
+    });
+  });
+})();
+</script>
 </body>
 </html>
 

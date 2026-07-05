@@ -10,7 +10,7 @@ services:
     runtime: python
     plan: free
     buildCommand: pip install -r requirements.txt
-    startCommand: gunicorn app:app -k uvicorn.workers.UvicornWorker --bind 0.0.0.0:$PORT --workers 1 --timeout 60
+    startCommand: gunicorn app:app -k uvicorn.workers.UvicornWorker --bind 0.0.0.0:$PORT --workers 1 --timeout 90
     healthCheckPath: /health
     # Persistent disk for the SQLite database (stored reports + captured
     # leads survive deploys and restarts). ~$0.25/month at 1 GB.

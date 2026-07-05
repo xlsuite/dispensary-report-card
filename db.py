@@ -71,6 +71,17 @@ def save_scan(url: str, hostname: str, score: float, grade: str,
     return token
 
 
+def get_recent_scan(url: str, max_age_seconds: int = 3600):
+    """Most recent stored scan of this exact URL within the window, or None."""
+    with _conn() as c:
+        return c.execute(
+            "SELECT token FROM scans WHERE url = ? AND "
+            "created_at >= datetime('now', ?) "
+            "ORDER BY created_at DESC LIMIT 1",
+            (url, f"-{int(max_age_seconds)} seconds"),
+        ).fetchone()
+
+
 def get_scan(token: str):
     with _conn() as c:
         return c.execute(

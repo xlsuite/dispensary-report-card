@@ -66,8 +66,20 @@ UNLOCK_COOKIE = "dsr_unlocked"
 
 PUBLIC_FETCH_TIMEOUT = 8.0  # seconds per HTTP request
 
+# Wall-clock budget for one whole scan. The scanner makes up to ~a dozen
+# HTTP fetches; against a slow site that can exceed the server timeout and
+# produce a 502 with nothing to show. Instead: once the budget is spent,
+# remaining fetches return None immediately and the scan completes with
+# whatever it gathered (checks show "not found" rather than the user
+# getting an error page).
+SCAN_WALL_BUDGET = 40.0
+_scan_deadline = 0.0
+
 
 def _public_fetch(url, timeout=PUBLIC_FETCH_TIMEOUT):
+    remaining = _scan_deadline - time.time()
+    if remaining <= 0:
+        return None
     try:
         return requests.get(
             url,
@@ -78,7 +90,8 @@ def _public_fetch(url, timeout=PUBLIC_FETCH_TIMEOUT):
                 "Accept-Language": "en-US,en;q=0.9",
             },
             cookies=report_card.AGE_GATE_COOKIES,
-            timeout=PUBLIC_FETCH_TIMEOUT,
+            # Never let a single fetch overshoot the remaining scan budget.
+            timeout=min(PUBLIC_FETCH_TIMEOUT, max(1.0, remaining)),
             allow_redirects=True,
         )
     except requests.RequestException:
@@ -409,10 +422,24 @@ REPORT_HEADER_TEMPLATE = (
 async def scan(request: Request, url: str = Query(...)):
     ip = _client_ip(request)
     try:
-        _check_rate(ip)
         safe_url = _validate_url(url)
     except HTTPException as e:
         return _error_page(str(e.detail), status=e.status_code)
+
+    # Same URL scanned within the last hour? Serve the stored report —
+    # instant for the user, no duplicate load, and doesn't consume their
+    # rate-limit quota.
+    recent = db.get_recent_scan(safe_url, max_age_seconds=3600)
+    if recent is not None:
+        return RedirectResponse("/r/" + recent["token"], status_code=303)
+
+    try:
+        _check_rate(ip)
+    except HTTPException as e:
+        return _error_page(str(e.detail), status=e.status_code)
+
+    global _scan_deadline
+    _scan_deadline = time.time() + SCAN_WALL_BUDGET
 
     log.info("scan start ip=%s url=%s", ip, safe_url)
     t0 = time.time()
